@@ -1,0 +1,10 @@
+{
+  "name": "opencode-heavy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenCode plugin that wraps known-heavy shell commands through heavy",
+  "scripts": {
+    "test": "node --test heavy.test.mjs"
+  }
+}

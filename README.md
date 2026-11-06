@@ -11,17 +11,16 @@ plugin.
 
 ## Install
 
-Download the plugin into the project's OpenCode plugins directory, then
+Download the plugin into the global OpenCode plugins directory, then
 restart OpenCode:
 
 ```sh
-mkdir -p .opencode/plugins
+mkdir -p ~/.config/opencode/plugins
 curl -fsSL https://raw.githubusercontent.com/MiRacLe-RPZ/opencode-heavy/main/heavy.ts \
-  -o .opencode/plugins/heavy.ts
+  -o ~/.config/opencode/plugins/heavy.ts
 ```
 
-For a machine-wide install, use `~/.config/opencode/plugins/heavy.ts`
-instead.
+For a project-local install, use `.opencode/plugins/heavy.ts` instead.
 
 `heavy` must be on the PATH that OpenCode itself uses (the shell tool does
 not source `.bashrc` / `.profile`).
@@ -40,6 +39,10 @@ Plugin loading in general: https://opencode.ai/docs/plugins
   heavy segments inside `&&` / `||` / `;` / `|` chains
   (`cd /tmp && cargo test` → `cd /tmp && heavy -- cargo test`).
 - Leaves everything else alone (search, git, editors, `npm run dev`, …).
+- For `npm` / `pnpm` / `yarn` / `bun`, matches scripts by exact name or heavy
+  namespace (`build:*`, `test:*`, `lint:*`, `ts:*`, `eslint*`, `stylelint*`),
+  while `:watch` / `:dev` daemons and small utilities (`build:config`,
+  `build:cleanup`, `test:*report`, `test:*install`, …) pass through.
 - Leaves commands that already start with `heavy` alone.
 - Nested heavy is safe: the binary skips the queue when `HEAVY_HELD` matches.
 - Missing `heavy` on PATH, or `HEAVY_DISABLED=1` in OpenCode's process

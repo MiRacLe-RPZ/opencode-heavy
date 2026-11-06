@@ -133,6 +133,74 @@ test("known heavy commands are wrapped with heavy --", () => {
   }
 })
 
+test("namespaced heavy npm scripts are wrapped", () => {
+  const scripts = [
+    "build:test",
+    "build:client:prod",
+    "build:client:bundleAnalyzer",
+    "build:server:prod",
+    "build:polyfill",
+    "build:vendors:prod",
+    "build:sw:prod",
+    "ts:strict",
+    "ts:typecheck",
+    "eslint",
+    "eslint:fix",
+    "eslint:all",
+    "stylelint",
+    "lint:knip",
+    "lint:helm",
+    "test:base",
+    "test:runTestsByPath",
+    "test:coverage",
+    "test:entities",
+    "test:features",
+    "test:pages",
+    "test:server",
+    "test:storm",
+    "test:utils",
+    "test:widgets",
+    "test:i18n",
+    "test:e2e",
+  ]
+  for (const script of scripts) {
+    for (const pm of ["npm", "pnpm", "yarn", "bun"]) {
+      const command = `${pm} run ${script}`
+      assert.equal(isHeavySegment(command), true, command)
+      assert.equal(rewriteCommand(command), `heavy -- ${command}`, command)
+    }
+  }
+})
+
+test("watchers and light npm scripts stay unwrapped", () => {
+  for (const script of [
+    "build:watch",
+    "build:client:dev",
+    "build:server:dev",
+    "build:sw:dev",
+    "build:vendors:dev",
+    "test:watch",
+    "test:e2e:report",
+    "test:e2e:install",
+    "test:mergeCoverage",
+    "test:createCoverageReport",
+    "build:config",
+    "build:cleanup",
+    "lint:casper",
+  ]) {
+    const command = `npm run ${script}`
+    assert.equal(isHeavySegment(command), false, command)
+    assert.equal(rewriteCommand(command), null, command)
+  }
+})
+
+test("npm run namespace matching stops at the colon", () => {
+  for (const command of ["npm run testing", "npm run builds", "npm run linters", "npm run tsc-watch"]) {
+    assert.equal(isHeavySegment(command), false, command)
+    assert.equal(rewriteCommand(command), null, command)
+  }
+})
+
 test("only heavy segments of a chain are wrapped", () => {
   assert.equal(rewriteCommand("cd /tmp && cargo test"), "cd /tmp && heavy -- cargo test")
   assert.equal(

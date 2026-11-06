@@ -55,6 +55,29 @@ const JS_RUN_HEAVY = new Set([
   "type-check",
   "typecheck",
 ])
+/**
+ * Namespaced npm scripts (`build:client:prod`, `test:server`, `ts:strict`, …).
+ * Matching on the `:` boundary keeps `npm run testing` out.
+ */
+const JS_RUN_HEAVY_PATTERNS = [
+  /^build(?::|$)/,
+  /^test(?::|$)/,
+  /^lint(?::|$)/,
+  /^ts:/,
+  /^eslint(?::|$)/,
+  /^stylelint(?::|$)/,
+]
+/**
+ * Long-running watchers would hold the machine-wide slot forever, and small
+ * utility scripts gain nothing from it.
+ */
+const JS_RUN_HEAVY_EXCLUDE = [
+  /:(?:watch|dev)$/i,
+  /:(?:report|install)$/i,
+  /^build:(?:config|cleanup)$/i,
+  /^test:(?:mergeCoverage|createCoverageReport)$/i,
+  /^lint:casper$/i,
+]
 const MAKE_HEAVY_TARGETS = new Set(["all", "build", "check", "ci", "lint", "test"])
 const STANDALONE_HEAVY = new Set([
   "biome",
@@ -65,6 +88,7 @@ const STANDALONE_HEAVY = new Set([
   "pytest",
   "py.test",
   "ruff",
+  "stylelint",
   "tsc",
   "vue-tsc",
 ])
@@ -158,7 +182,10 @@ function isHeavyJsPackage(argv: string[]): boolean {
   if (sub !== "run") return false
   i = skipFlags(argv, i + 1)
   const script = argv[i]?.toLowerCase()
-  return script !== undefined && JS_RUN_HEAVY.has(script)
+  if (script === undefined) return false
+  if (JS_RUN_HEAVY.has(script)) return true
+  if (JS_RUN_HEAVY_EXCLUDE.some((re) => re.test(script))) return false
+  return JS_RUN_HEAVY_PATTERNS.some((re) => re.test(script))
 }
 
 function isHeavyMake(argv: string[]): boolean {
